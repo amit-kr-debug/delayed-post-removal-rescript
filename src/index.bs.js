@@ -149,7 +149,7 @@ function showDeleteNotif(post, index) {
   var postDiv = document.getElementById(id);
   var intervalId = window.setTimeout((function (param) {
           return deleteElement(index);
-        }), 3000);
+        }), 10000);
   var deleteDiv = createDeleteNotif(post, postDiv, index, intervalId);
   body.insertBefore(deleteDiv, postDiv);
   return body.removeChild(postDiv);

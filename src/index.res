@@ -141,7 +141,7 @@ module View = {
 
   let showDeleteNotif = (post, index) => {
     let postDiv = Tag.findElementbyId(`block-${Belt.Int.toString(index)}`)
-    let intervalId = window["setTimeout"](() => Function.deleteElement(index), 3000)
+    let intervalId = window["setTimeout"](() => Function.deleteElement(index), 10000)
     let deleteDiv = createDeleteNotif(post, postDiv, index, intervalId)
     let _ = body["insertBefore"](deleteDiv, postDiv)
     body["removeChild"](postDiv)
