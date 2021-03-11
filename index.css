@@ -1,0 +1,94 @@
+body {
+  background-color: #047857;
+}
+
+.post {
+  max-width: 720px;
+  margin: 16px auto;
+  padding: 24px;
+  background-color: #d1fae5;
+  opacity: 0.85;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.post:hover {
+  opacity: 1;
+}
+
+.post-deleted {
+  max-width: 720px;
+  margin: 16px auto;
+  border-radius: 0;
+  box-shadow: none;
+  height: 160px;
+  background-color: #fef3c7;
+  opacity: 0.85;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.post-deleted:hover {
+  opacity: 1;
+}
+
+.post-deleted-progress {
+  width: 100%;
+  height: 8px;
+  background-color: #b45309;
+  animation-name: reduceWidth;
+  animation-duration: 10s;
+  animation-fill-mode: forwards;
+  position: absolute;
+  top: 152px;
+}
+
+@keyframes reduceWidth {
+  0% {
+    width: 100%;
+  }
+  100% {
+    width: 0%;
+  }
+}
+
+.button {
+  border: 0;
+  padding: 8px 16px;
+  text-transform: capitalize;
+  color: #f9fafb;
+  min-width: 200px;
+}
+
+.button-danger {
+  background-color: #ef4444;
+}
+
+.button-danger:hover {
+  background-color: #991b1b;
+}
+
+.button-warning {
+  background-color: #f59e0b;
+}
+
+.button-warning:hover {
+  background-color: #92400e;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+}
+
+.mr-1 {
+  margin-right: 8px;
+}
+
+.pt-1 {
+  padding-top: 8px;
+}
