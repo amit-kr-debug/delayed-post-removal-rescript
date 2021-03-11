@@ -115,33 +115,32 @@ function $$clearInterval(intervalId) {
   return window.clearInterval(intervalId);
 }
 
+function configureDeleteNotifButtons(index, postDiv, intervalId) {
+  var id = "block-restore-" + String(index);
+  var restoreButton = document.getElementById(id);
+  restoreButton.addEventListener("click", (function (param) {
+          restore(postDiv, index);
+          return window.clearInterval(intervalId);
+        }));
+  var id$1 = "block-delete-immediate-" + String(index);
+  var deleteImmediatelyButton = document.getElementById(id$1);
+  deleteImmediatelyButton.addEventListener("click", (function (param) {
+          deleteElement(index);
+          return window.clearInterval(intervalId);
+        }));
+  
+}
+
 var $$Function = {
   restore: restore,
   deleteElement: deleteElement,
-  $$clearInterval: $$clearInterval
+  $$clearInterval: $$clearInterval,
+  configureDeleteNotifButtons: configureDeleteNotifButtons
 };
 
-function createDeleteNotif(post, postDiv, id, intervalId) {
-  var deleteDiv = addClass(addId(document.createElement("div"), "block-" + String(id)), "post-deleted pt-1");
-  var postHeadingTag = createTextnode(addClass(document.createElement("p"), "text-center"), deleteText(post));
-  deleteDiv.appendChild(postHeadingTag);
-  var buttonDiv = addClass(document.createElement("div"), "flex-center");
-  var restoreButton = createTextnode(addClass(addId(document.createElement("button"), "block-restore-" + String(id)), "button button-warning mr-1"), "Restore");
-  restoreButton.addEventListener("click", (function (param) {
-          restore(postDiv, id);
-          return window.clearInterval(intervalId);
-        }));
-  buttonDiv.appendChild(restoreButton);
-  var deleteImmediatelyButton = createTextnode(addClass(addId(document.createElement("button"), "block-delete-immediate-" + String(id)), "button button-danger"), "Delete Immediately");
-  deleteImmediatelyButton.addEventListener("click", (function (param) {
-          deleteElement(id);
-          return window.clearInterval(intervalId);
-        }));
-  buttonDiv.appendChild(deleteImmediatelyButton);
-  deleteDiv.appendChild(buttonDiv);
-  var animationDiv = addClass(document.createElement("div"), "post-deleted-progress");
-  deleteDiv.appendChild(animationDiv);
-  return deleteDiv;
+function createDeleteNotif(post, id) {
+  var deleteDivInnerHtml = "<p class=\"text-center\">\n        This post from <em>" + post.title + " by " + post.author + "</em> will be permanently removed in 10 seconds.\n      </p>\n      <div class=\"flex-center\">\n        <button id=\"block-restore-" + String(id) + "\" class=\"button button-warning mr-1\">Restore</button>\n        <button id=\"block-delete-immediate-" + String(id) + "\" class=\"button button-danger\">Delete Immediately</button>\n      </div>\n      <div class=\"post-deleted-progress\"></div>";
+  return createTextnode(addClass(addId(document.createElement("div"), "block-" + String(id)), "post-deleted pt-1"), deleteDivInnerHtml);
 }
 
 function showDeleteNotif(post, index) {
@@ -150,27 +149,17 @@ function showDeleteNotif(post, index) {
   var intervalId = window.setTimeout((function (param) {
           return deleteElement(index);
         }), 10000);
-  var deleteDiv = createDeleteNotif(post, postDiv, index, intervalId);
+  var deleteDiv = createDeleteNotif(post, index);
   body.insertBefore(deleteDiv, postDiv);
-  return body.removeChild(postDiv);
+  body.removeChild(postDiv);
+  return configureDeleteNotifButtons(index, postDiv, intervalId);
 }
 
 function createPostView(post, id) {
-  var postDiv = addClass(addId(document.createElement("div"), "block-" + String(id)), "post");
-  var postHeadingTag = createTextnode(addClass(document.createElement("h2"), "post-heading"), post.title);
-  postDiv.appendChild(postHeadingTag);
-  var postAuthorTag = createTextnode(document.createElement("h3"), post.author);
-  postDiv.appendChild(postAuthorTag);
-  Belt_Array.forEach(post.text, (function (line) {
-          var child = createTextnode(addClass(document.createElement("p"), "post-text"), line);
-          return postDiv.appendChild(child);
-        }));
-  var button = createTextnode(addClass(addId(document.createElement("button"), "block-" + String(id)), "button button-danger"), "Remove this post");
-  button.addEventListener("click", (function (param) {
-          return showDeleteNotif(post, id);
-        }));
-  postDiv.appendChild(button);
-  return postDiv;
+  var postDivInnerHtml = "<h2 class=\"post-heading\">" + post.title + "</h2>\n                            <h3>" + post.author + "</h3>" + Belt_Array.reduce(post.text, "", (function (text, line) {
+          return text + ("<p class=\"post-text\">" + line + "</p>");
+        })) + ("<button id= \"block-delete-" + String(id) + "\" class=\"button button-danger\">Remove</button>");
+  return createTextnode(addClass(addId(document.createElement("div"), "block-" + String(id)), "post"), postDivInnerHtml);
 }
 
 var View = {
@@ -182,7 +171,13 @@ var View = {
 function createPost(param) {
   return Belt_Array.forEachWithIndex(posts, (function (index, post) {
                 var postDiv = createPostView(post, index);
-                return body.appendChild(postDiv);
+                body.appendChild(postDiv);
+                var id = "block-delete-" + String(index);
+                var removeButton = document.getElementById(id);
+                removeButton.addEventListener("click", (function (param) {
+                        return showDeleteNotif(post, index);
+                      }));
+                
               }));
 }
 

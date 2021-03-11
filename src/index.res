@@ -96,82 +96,73 @@ module Function = {
   let clearInterval = (intervalId): unit => {
     window["clearInterval"](intervalId)
   }
+
+  let configureDeleteNotifButtons = (index, postDiv, intervalId) => {
+    let restoreButton = Tag.findElementbyId(`block-restore-${Belt.Int.toString(index)}`)
+    let _ = restoreButton["addEventListener"]("click", () => {
+      restore(postDiv, index)
+      clearInterval(intervalId)
+    })
+    let deleteImmediatelyButton = Tag.findElementbyId(
+      `block-delete-immediate-${Belt.Int.toString(index)}`,
+    )
+    let _ = deleteImmediatelyButton["addEventListener"]("click", () => {
+      deleteElement(index)
+      clearInterval(intervalId)
+    })
+  }
 }
 
 module View = {
-  let createDeleteNotif = (post: Post.t, postDiv, id, intervalId) => {
+  let createDeleteNotif = (post: Post.t, id) => {
+    let deleteDivInnerHtml = `<p class="text-center">
+        This post from <em>${post.title} by ${post.author}</em> will be permanently removed in 10 seconds.
+      </p>
+      <div class="flex-center">
+        <button id="block-restore-${Belt.Int.toString(
+        id,
+      )}" class="button button-warning mr-1">Restore</button>
+        <button id="block-delete-immediate-${Belt.Int.toString(
+        id,
+      )}" class="button button-danger">Delete Immediately</button>
+      </div>
+      <div class="post-deleted-progress"></div>`
+
     let deleteDiv =
       Tag.createTag("div")
       ->Tag.addId(`block-${Belt.Int.toString(id)}`)
       ->Tag.addClass("post-deleted pt-1")
+      ->Tag.createTextnode(deleteDivInnerHtml)
 
-    let postHeadingTag =
-      Tag.createTag("p")->Tag.addClass("text-center")->Tag.createTextnode(Tag.deleteText(post))
-    Tag.appendChild(postHeadingTag, deleteDiv)
-
-    let buttonDiv = Tag.createTag("div")->Tag.addClass("flex-center")
-    let restoreButton =
-      Tag.createTag("button")
-      ->Tag.addId(`block-restore-${Belt.Int.toString(id)}`)
-      ->Tag.addClass("button button-warning mr-1")
-      ->Tag.createTextnode("Restore")
-    let _ = restoreButton["addEventListener"]("click", () => {
-      Function.restore(postDiv, id)
-      Function.clearInterval(intervalId)
-    })
-    Tag.appendChild(restoreButton, buttonDiv)
-
-    let deleteImmediatelyButton =
-      Tag.createTag("button")
-      ->Tag.addId(`block-delete-immediate-${Belt.Int.toString(id)}`)
-      ->Tag.addClass("button button-danger")
-      ->Tag.createTextnode("Delete Immediately")
-
-    let _ = deleteImmediatelyButton["addEventListener"]("click", () => {
-      Function.deleteElement(id)
-      Function.clearInterval(intervalId)
-    })
-    Tag.appendChild(deleteImmediatelyButton, buttonDiv)
-    Tag.appendChild(buttonDiv, deleteDiv)
-
-    let animationDiv = Tag.createTag("div")->Tag.addClass("post-deleted-progress")
-    Tag.appendChild(animationDiv, deleteDiv)
     deleteDiv
   }
 
   let showDeleteNotif = (post, index) => {
     let postDiv = Tag.findElementbyId(`block-${Belt.Int.toString(index)}`)
     let intervalId = window["setTimeout"](() => Function.deleteElement(index), 10000)
-    let deleteDiv = createDeleteNotif(post, postDiv, index, intervalId)
+    let deleteDiv = createDeleteNotif(post, index)
     let _ = body["insertBefore"](deleteDiv, postDiv)
-    body["removeChild"](postDiv)
+    let _ = body["removeChild"](postDiv)
+    Function.configureDeleteNotifButtons(index, postDiv, intervalId)
   }
 
   let createPostView = (post: Post.t, id) => {
+    let postDivInnerHtml =
+      `<h2 class="post-heading">${post.title}</h2>
+                            <h3>${post.author}</h3>` ++
+      post.text->Belt.Array.reduce("", (text, line) => {
+        text ++ `<p class="post-text">${line}</p>`
+      }) ++
+      `<button id= "block-delete-${Belt.Int.toString(
+          id,
+        )}" class="button button-danger">Remove</button>`
+
     let postDiv =
-      Tag.createTag("div")->Tag.addId(`block-${Belt.Int.toString(id)}`)->Tag.addClass("post")
-
-    let postHeadingTag =
-      Tag.createTag("h2")->Tag.addClass("post-heading")->Tag.createTextnode(post.title)
-    Tag.appendChild(postHeadingTag, postDiv)
-
-    let postAuthorTag = Tag.createTag("h3")->Tag.createTextnode(post.author)
-    Tag.appendChild(postAuthorTag, postDiv)
-
-    post.text->Belt_Array.forEach(line => {
-      Tag.createTag("p")
-      ->Tag.addClass("post-text")
-      ->Tag.createTextnode(line)
-      ->Tag.appendChild(postDiv)
-    })
-
-    let button =
-      Tag.createTag("button")
+      Tag.createTag("div")
       ->Tag.addId(`block-${Belt.Int.toString(id)}`)
-      ->Tag.addClass("button button-danger")
-      ->Tag.createTextnode("Remove this post")
-    let _ = button["addEventListener"]("click", () => showDeleteNotif(post, id))
-    Tag.appendChild(button, postDiv)
+      ->Tag.addClass("post")
+      ->Tag.createTextnode(postDivInnerHtml)
+
     postDiv
   }
 }
@@ -181,6 +172,8 @@ module DelayedPostRemoval = {
     posts->Belt_Array.forEachWithIndex((index, post) => {
       let postDiv = View.createPostView(post, index)
       Tag.appendChild(postDiv, body)
+      let removeButton = Tag.findElementbyId(`block-delete-${Belt.Int.toString(index)}`)
+      let _ = removeButton["addEventListener"]("click", () => View.showDeleteNotif(post, index))
     })
 }
 
